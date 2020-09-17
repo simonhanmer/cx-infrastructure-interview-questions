@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: ECS Infrastructure Interview Scenario2 - Template 1. Create S3 Bucket
+
+Resources:
+  rArtifactS3Bucket:  # Don't need to specify BucketName, just use random name from CFN.
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+
+Outputs:
+  oBucketName:
+    Description: Name of S3 Bucket
+    Value: !Ref rArtifactS3Bucket
+    Export: 
+      Name: !Sub ${AWS::StackName}:BucketName
