@@ -1,8 +1,46 @@
 AWSTemplateFormatVersion: 2010-09-09
-
+Transform: AWS::Serverless-2016-10-31
 Description: ECS Infrastructure Interview Template 1
 
-# Parameters:
+Parameters:
+  pArtifactS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
+    ConstraintDescription: bucket name can include numbers, lowercase
+      letters, uppercase letters, periods (.), and hyphens (-). It cannot start or
+      end with a hyphen (-).
+    Description: S3 bucket name for the Cfn assets. bucket name
+      can include numbers, lowercase letters, uppercase letters, and hyphens (-).
+      It cannot start or end with a hyphen (-).
+    Type: String
+
+  pArtifactS3Key:
+    AllowedPattern: ^[0-9a-zA-Z-\/\.]*$
+    ConstraintDescription: key can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/). It cannot start or end
+      with forward slash (/) because they are automatically appended.
+    Description: S3 key for the Lambda zipfile. key
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/). It cannot start or end with forward slash (/) because they
+      are automatically appended.
+    Type: String
+    Default: lambda.zip
+
+  pLogLevel:
+    Description: verbosity level of function loggers
+    Type: String
+    Default: DEBUG
+    AllowedValues:
+      - CRITICAL
+      - ERROR
+      - WARNING
+      - INFO
+      - DEBUG
+
+  pFunctionAliasName:
+    Description: Alias to use for lambda DeploymentPreference
+    AllowedPattern: (?!^[0-9]+$)([a-zA-Z0-9-_]+)
+    Type: String
+    Default: live
 
 Resources:
   rLambdaFunctionRole:
@@ -21,19 +59,21 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
-#   rLambdaFunction:
-#     Type: AWS::Serverless::Function
-#     Properties:
-#       Handler: lambda.lambda_handler
-#       Environment:
-#         Variables:
-#           LOG_LEVEL: !Ref pLogLevel
-#       CodeUri:
-#         Bucket: !Ref pArtifactS3BucketName
-#         Key: !Ref pArtifactS3Key
-#       Role: !Ref rLambdaFunctionRole
-#       DeploymentPreference:
-#         Type: AllAtOnce
+  rLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda.handler
+      Runtime: python3.7
+      Environment:
+        Variables:
+          LOG_LEVEL: !Ref pLogLevel
+      CodeUri:
+        Bucket: !Ref pArtifactS3BucketName
+        Key: !Ref pArtifactS3Key
+      Role: !GetAtt rLambdaFunctionRole.Arn
+      AutoPublishAlias: !Ref pFunctionAliasName
+      DeploymentPreference:
+        Type: AllAtOnce
 #       Alarms:
 #         - !Ref rLambdaFunctionAliasErrorAlarm
 #         - !Ref rLambdaFunctionVersionErrorAlarm
