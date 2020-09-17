@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: ECS Infrastructure Interview Template 1
 
-Parameters:
+# Parameters:
 
 Resources:
   rLambdaFunctionRole:
@@ -17,70 +17,62 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
-      Name: lambda-function-role
       Path: /
-      Policies:
-        - PolicyName: allow-ec2
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              Action:
-                - ec2:*
-              Effect: Allow
-              Resource: '*'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-        - arn:aws:iam::aws:policy/AmazonGlacierFullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
-  rLambdaFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: lambda.lambda_handler
-      Environment:
-        Variables:
-          LOG_LEVEL: !Ref pLogLevel
-      CodeUri:
-        Bucket: !Ref pArtifactS3BucketName
-        Key: !Ref pArtifactS3Key
-      Role: !Ref rLambdaFunctionRole
-      DeploymentPreference:
-        Type: AllAtOnce
-      Alarms:
-        - !Ref rLambdaFunctionAliasErrorAlarm
-        - !Ref rLambdaFunctionVersionErrorAlarm
-    ​
-  rLambdaFunctionAliasErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: Lambda Function Error > 0
-      ComparisonOperator: GreaterThanThreshold
-      Dimensions:
-        - Name: Resource
-          Value: !Sub ${rLambdaFunction}:${pFunctionAliasName}
-        - Name: FunctionName
-          Value: !Ref rLambdaFunction
-      EvaluationPeriods: 1
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Period: 300
-      Statistic: Sum
-      Threshold: 0
-    ​
-  rLambdaFunctionVersionErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: Lambda Function Error > 0
-      ComparisonOperator: GreaterThanThreshold
-      Dimensions:
-        - Name: Resource
-          Value: !Ref rLambdaFunction.Version
-        - Name: FunctionName
-          Value: !Ref rLambdaFunction
-      EvaluationPeriods: 1
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Period: 300
-      Statistic: Sum
-      Threshold: 0
+#   rLambdaFunction:
+#     Type: AWS::Serverless::Function
+#     Properties:
+#       Handler: lambda.lambda_handler
+#       Environment:
+#         Variables:
+#           LOG_LEVEL: !Ref pLogLevel
+#       CodeUri:
+#         Bucket: !Ref pArtifactS3BucketName
+#         Key: !Ref pArtifactS3Key
+#       Role: !Ref rLambdaFunctionRole
+#       DeploymentPreference:
+#         Type: AllAtOnce
+#       Alarms:
+#         - !Ref rLambdaFunctionAliasErrorAlarm
+#         - !Ref rLambdaFunctionVersionErrorAlarm
+#     ​
+#   rLambdaFunctionAliasErrorAlarm:
+#     Type: AWS::CloudWatch::Alarm
+#     Properties:
+#       AlarmDescription: Lambda Function Error > 0
+#       ComparisonOperator: GreaterThanThreshold
+#       Dimensions:
+#         - Name: Resource
+#           Value: !Sub ${rLambdaFunction}:${pFunctionAliasName}
+#         - Name: FunctionName
+#           Value: !Ref rLambdaFunction
+#       EvaluationPeriods: 1
+#       MetricName: Errors
+#       Namespace: AWS/Lambda
+#       Period: 300
+#       Statistic: Sum
+#       Threshold: 0
+#     ​
+#   rLambdaFunctionVersionErrorAlarm:
+#     Type: AWS::CloudWatch::Alarm
+#     Properties:
+#       AlarmDescription: Lambda Function Error > 0
+#       ComparisonOperator: GreaterThanThreshold
+#       Dimensions:
+#         - Name: Resource
+#           Value: !Ref rLambdaFunction.Version
+#         - Name: FunctionName
+#           Value: !Ref rLambdaFunction
+#       EvaluationPeriods: 1
+#       MetricName: Errors
+#       Namespace: AWS/Lambda
+#       Period: 300
+#       Statistic: Sum
+#       Threshold: 0
 
 Outputs:
+  oIAMRoleName:
+    Description: Name of IAM Role created to execute lambda
+    Value: !Ref rLambdaFunctionRole
